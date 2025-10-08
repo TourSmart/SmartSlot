@@ -4,6 +4,8 @@ import TimetableSummary from './components/TimetableSummary.jsx';
 import TimetableSessions from './components/TimetableSessions.jsx';
 import ScenarioList from './components/ScenarioList.jsx';
 import DecorativeBackground from './components/DecorativeBackground.jsx';
+import NavBar from './components/NavBar.jsx';
+import ToastContainer from './components/ToastContainer.jsx';
 import {
   usePrograms,
   useResources,
@@ -11,6 +13,7 @@ import {
   useGenerateTimetable,
   useSaveScenario,
 } from './hooks/useTimetable.js';
+import { useToast } from './hooks/useToast.jsx';
 import './App.css';
 
 const INITIAL_CONFIG = {
@@ -35,6 +38,42 @@ function App() {
   const [timetable, setTimetable] = useState(null);
   const [scenarioName, setScenarioName] = useState('');
   const [feedback, setFeedback] = useState(null);
+  const { showToast } = useToast();
+  const featureHighlights = [
+    {
+      title: 'Scenario sandboxes',
+      description: 'Clone and experiment with elective mixes before publishing to students.',
+      accent: 'violet',
+    },
+    {
+      title: 'Faculty pulse',
+      description: 'Live utilisation gauges ensure coaching loads stay balanced across mentors.',
+      accent: 'cyan',
+    },
+    {
+      title: 'Zero-conflict AI',
+      description: 'Smart heuristics detect clashes across labs, practicum blocks, and electives instantly.',
+      accent: 'amber',
+    },
+  ];
+
+  const onboardingTips = [
+    {
+      title: 'Import student choices',
+      step: '1',
+      detail: 'Connect your MIS to pull elective and credit loads directly into SmartSlot.',
+    },
+    {
+      title: 'Sync faculty availability',
+      step: '2',
+      detail: 'Share the planner with programme coordinators to keep slots and workloads updated.',
+    },
+    {
+      title: 'Simulate delivery weeks',
+      step: '3',
+      detail: 'Generate multiple drafts to compare conflict-free options before publishing.',
+    },
+  ];
 
   const {
     data: programs = [],
@@ -89,6 +128,7 @@ function App() {
             : `Scenario ${new Date().toLocaleDateString()}`;
           setScenarioName((prev) => prev || defaultName);
           setFeedback({ type: 'success', message: 'Timetable generated successfully.' });
+          showToast({ type: 'success', message: 'Timetable generated successfully.' });
         },
         onError: (error) => {
           setTimetable(null);
@@ -96,6 +136,7 @@ function App() {
             type: 'error',
             message: error?.response?.data?.message || error.message || 'Failed to generate timetable.',
           });
+          showToast({ type: 'error', message: error?.response?.data?.message || error.message || 'Failed to generate timetable.' });
         },
       }
     );
@@ -128,12 +169,14 @@ function App() {
       onSuccess: (scenario) => {
         setScenarioName(scenario.name);
         setFeedback({ type: 'success', message: 'Scenario saved successfully.' });
+        showToast({ type: 'success', message: 'Scenario saved successfully.' });
       },
       onError: (error) => {
         setFeedback({
           type: 'error',
           message: error?.response?.data?.message || error.message || 'Unable to save scenario.',
         });
+        showToast({ type: 'error', message: error?.response?.data?.message || error.message || 'Unable to save scenario.' });
       },
     });
   };
@@ -162,6 +205,7 @@ function App() {
 
   return (
     <div className="app">
+      <NavBar />
       <DecorativeBackground />
 
       <section className="app__hero">
@@ -215,6 +259,19 @@ function App() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="app__insights">
+        {featureHighlights.map((feature) => (
+          <article key={feature.title} className={`insight-card insight-card--${feature.accent}`}>
+            <header>
+              <span className="insight-card__spark" />
+              <h3>{feature.title}</h3>
+            </header>
+            <p>{feature.description}</p>
+            <span className="insight-card__cta">Explore workflows →</span>
+          </article>
+        ))}
       </section>
 
       {feedback && <div className={`alert alert--${feedback.type}`}>{feedback.message}</div>}
@@ -276,6 +333,26 @@ function App() {
           )}
         </aside>
       </main>
+
+      <section className="app__workflow">
+        <div className="workflow__header">
+          <h2>Launch in three smooth moves</h2>
+          <p>Blend SmartSlot into your academic calendar with these quick start steps.</p>
+        </div>
+        <div className="workflow__grid">
+          {onboardingTips.map((tip) => (
+            <article key={tip.title} className="workflow-card">
+              <div className="workflow-card__badge">{tip.step}</div>
+              <h3>{tip.title}</h3>
+              <p>{tip.detail}</p>
+              <button type="button" className="link-button">
+                View playbook
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+      <ToastContainer />
     </div>
   );
 }

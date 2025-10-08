@@ -14,6 +14,7 @@ const ProgramConfigurator = ({
   isLoadingPrograms,
   isLoadingResources,
 }) => {
+  const isLoading = isLoadingPrograms || isLoadingResources;
   const constraints = {
     maxSessionsPerDay: value.constraints?.maxSessionsPerDay ?? 3,
     preferredDays: value.constraints?.preferredDays ?? [],
@@ -128,17 +129,22 @@ const ProgramConfigurator = ({
           <h2>Configuration</h2>
           <p className="panel__subtitle">Select program, electives, and scheduling constraints.</p>
         </div>
-        {onReset && (
-          <button type="button" className="secondary-button" onClick={onReset}>
-            Reset
-          </button>
-        )}
       </header>
       <div className="panel__body">
-        {isLoadingPrograms || isLoadingResources ? (
-          <p>Loading academic data...</p>
+        {isLoading ? (
+          <div className="skeleton skeleton--form" aria-hidden="true">
+            <div className="skeleton__title" />
+            <div className="skeleton__row" />
+            <div className="skeleton__row" />
+            <div className="skeleton__grid">
+              <span className="skeleton__pill" />
+              <span className="skeleton__pill" />
+              <span className="skeleton__pill" />
+            </div>
+            <div className="skeleton__box" />
+          </div>
         ) : (
-          <form className="form-grid" onSubmit={(event) => event.preventDefault()}>
+          <form className="form-grid compact" onSubmit={(event) => event.preventDefault()}>
             <div className="field">
               <label htmlFor="program">Programme</label>
               <select id="program" value={value.programId} onChange={handleProgramChange}>
@@ -238,18 +244,29 @@ const ProgramConfigurator = ({
               </div>
             </fieldset>
 
-            <div className="field">
-              <button
-                type="button"
-                className="primary-button"
-                onClick={onGenerate}
-                disabled={disableGenerate}
-              >
-                {isGenerating ? 'Generating…' : 'Generate Timetable'}
-              </button>
-            </div>
           </form>
         )}
+
+        <div className="sticky-actions" role="region" aria-label="Quick actions">
+          <div className="sticky-actions__bar">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={onReset}
+              disabled={!onReset || isGenerating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={onGenerate}
+              disabled={disableGenerate}
+            >
+              {isGenerating ? 'Generating…' : 'Generate'}
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );

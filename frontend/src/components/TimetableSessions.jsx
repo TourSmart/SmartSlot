@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { exportTimetableToPDF, exportTimetableToCSV } from '../utils/exporters.js';
+import TimetableGrid from './TimetableGrid.jsx';
 
 const TimetableSessions = ({ timetable, isGenerating }) => {
+  const [view, setView] = useState('list'); // 'list' | 'grid'
   if (isGenerating) {
     return (
       <section className="panel">
@@ -38,6 +41,26 @@ const TimetableSessions = ({ timetable, isGenerating }) => {
           <p className="panel__subtitle">Conflict-free schedule generated from provided preferences.</p>
         </div>
         <div className="panel__actions">
+          <div className="segmented" role="tablist" aria-label="View mode">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === 'list'}
+              className={`segmented__option ${view === 'list' ? 'is-active' : ''}`}
+              onClick={() => setView('list')}
+            >
+              List
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === 'grid'}
+              className={`segmented__option ${view === 'grid' ? 'is-active' : ''}`}
+              onClick={() => setView('grid')}
+            >
+              Grid
+            </button>
+          </div>
           <button type="button" className="secondary-button" onClick={handleExportCSV} disabled={!hasSessions}>
             Export CSV
           </button>
@@ -48,30 +71,36 @@ const TimetableSessions = ({ timetable, isGenerating }) => {
       </header>
       <div className="panel__body">
         {hasSessions ? (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Day</th>
-                  <th>Time</th>
-                  <th>Course</th>
-                  <th>Faculty</th>
-                  <th>Room</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sessions.map((session) => (
-                  <tr key={`${session.slotId}-${session.courseId}`}>
-                    <td>{session.day}</td>
-                    <td>{session.time}</td>
-                    <td>{session.courseName}</td>
-                    <td>{session.facultyName}</td>
-                    <td>{session.roomId}</td>
+          view === 'grid' ? (
+            <div className="grid-wrapper">
+              <TimetableGrid sessions={sessions} />
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Course</th>
+                    <th>Faculty</th>
+                    <th>Room</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {sessions.map((session) => (
+                    <tr key={`${session.slotId}-${session.courseId}`}>
+                      <td>{session.day}</td>
+                      <td>{session.time}</td>
+                      <td>{session.courseName}</td>
+                      <td>{session.facultyName}</td>
+                      <td>{session.roomId}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         ) : (
           <p>No sessions could be scheduled with the selected constraints.</p>
         )}
